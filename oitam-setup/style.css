@@ -1,0 +1,385 @@
+/*
+Theme Name: OITAM MagicSpore Clone
+Description: Minimalist WooCommerce theme cloning magicspore.com design for PayPal processing
+Version: 1.0
+*/
+
+/* Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: #f8f9fa;
+}
+
+/* Header */
+.site-header {
+    background: #2c3e50;
+    color: white;
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.site-header .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.site-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: white;
+    text-decoration: none;
+}
+
+.site-title:hover {
+    color: #ecf0f1;
+}
+
+/* Navigation */
+.main-navigation ul {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+}
+
+.main-navigation a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.main-navigation a:hover {
+    color: #3498db;
+}
+
+/* Main Content */
+.site-main {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* WooCommerce Overrides */
+.woocommerce {
+    font-family: inherit;
+}
+
+/* Product Pages */
+.woocommerce div.product {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.woocommerce div.product .product_title {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.woocommerce div.product .price {
+    font-size: 1.5rem;
+    color: #e67e22;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.woocommerce div.product .woocommerce-product-details__short-description {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+/* Add to Cart Button */
+.woocommerce #content input.button,
+.woocommerce #respond input#submit,
+.woocommerce a.button,
+.woocommerce button.button,
+.woocommerce input.button {
+    background: #e67e22;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.woocommerce #content input.button:hover,
+.woocommerce #respond input#submit:hover,
+.woocommerce a.button:hover,
+.woocommerce button.button:hover,
+.woocommerce input.button:hover {
+    background: #d35400;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(230, 126, 34, 0.4);
+}
+
+/* Cart & Checkout */
+.woocommerce table.shop_table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.woocommerce table.shop_table th,
+.woocommerce table.shop_table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.woocommerce table.shop_table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Checkout Page */
+.woocommerce-checkout {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.woocommerce-checkout h3 {
+    color: #2c3e50;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #3498db;
+}
+
+/* Form Styling */
+.woocommerce form .form-row {
+    margin-bottom: 1rem;
+}
+
+.woocommerce form .form-row label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.woocommerce form .input-text,
+.woocommerce form select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.woocommerce form .input-text:focus,
+.woocommerce form select:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+/* Payment Methods */
+.woocommerce ul.payment_methods {
+    list-style: none;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.woocommerce ul.payment_methods li {
+    margin-bottom: 0.5rem;
+}
+
+.woocommerce ul.payment_methods .payment_method_paypal label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+}
+
+.woocommerce ul.payment_methods .payment_method_paypal img {
+    max-height: 30px;
+}
+
+/* Place Order Button */
+.woocommerce #place_order {
+    background: #0070ba !important;
+    color: white !important;
+    border: none;
+    padding: 1.2rem 2rem;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.woocommerce #place_order:hover {
+    background: #005a9a !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 112, 186, 0.4);
+}
+
+/* Order Summary */
+.woocommerce-checkout-review-order {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.woocommerce-checkout-review-order-table {
+    margin-bottom: 0;
+}
+
+/* Success Messages */
+.woocommerce-message {
+    background: #d4edda;
+    color: #155724;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #28a745;
+    margin-bottom: 1rem;
+}
+
+/* Error Messages */
+.woocommerce-error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+    margin-bottom: 1rem;
+}
+
+/* Loading States */
+.woocommerce .blockUI.blockOverlay {
+    background: rgba(255,255,255,0.8) !important;
+}
+
+.woocommerce .loader {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .site-header .container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .main-navigation ul {
+        gap: 1rem;
+    }
+    
+    .site-main {
+        margin: 1rem auto;
+        padding: 0 0.5rem;
+    }
+    
+    .woocommerce div.product,
+    .woocommerce-checkout {
+        padding: 1rem;
+    }
+    
+    .woocommerce div.product .product_title {
+        font-size: 1.5rem;
+    }
+}
+
+/* Hide elements for proxy orders */
+.proxy-order .woocommerce-billing-fields__field-wrapper,
+.proxy-order .woocommerce-additional-fields,
+.proxy-order .create-account {
+    display: none !important;
+}
+
+/* Minimal proxy checkout */
+.proxy-order .woocommerce-checkout {
+    text-align: center;
+}
+
+.proxy-order .order-total {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 2rem 0;
+}
+
+/* PayPal Express styling */
+.paypal-express-checkout {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    text-align: center;
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.paypal-logo {
+    max-width: 200px;
+    margin-bottom: 1rem;
+}
+
+.checkout-total {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 1rem 0;
+}
+
+.security-notice {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 1rem;
+}
+
+/* Footer */
+.site-footer {
+    background: #2c3e50;
+    color: white;
+    padding: 2rem 0;
+    margin-top: 4rem;
+    text-align: center;
+}
+
+.site-footer p {
+    margin: 0;
+    font-size: 0.9rem;
+}
