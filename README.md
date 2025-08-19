@@ -1,6 +1,25 @@
-# 🚀 PayPal Proxy Go - Clean Architecture Payment Solution
+# PayPal Proxy Go 🚀
 
-A high-performance Go backend implementing **Onion Architecture** for processing PayPal payments between WooCommerce domains with complete anonymization.
+A production-ready PayPal payment proxy service built with Go, implementing Clean Architecture patterns for secure WooCommerce integration between MagicSpore and OITAM.
+
+[![CI/CD Pipeline](https://github.com/your-org/paypal-proxy-go/workflows/PayPal%20Proxy%20CI/CD%20Pipeline/badge.svg)](https://github.com/your-org/paypal-proxy-go/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/your-org/paypal-proxy-go)](https://goreportcard.com/report/github.com/your-org/paypal-proxy-go)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Docker Pulls](https://img.shields.io/docker/pulls/your-org/paypal-proxy-go.svg)](https://hub.docker.com/r/your-org/paypal-proxy-go)
+
+## 🎯 Overview
+
+This service acts as a secure proxy for PayPal payments, enabling seamless integration between MagicSpore (source) and OITAM (destination) WooCommerce stores while maintaining order anonymization and security.
+
+### Key Features
+
+- 🏗️ **Clean Architecture** - Onion/Hexagonal architecture with clear separation of concerns
+- 🔒 **Enterprise Security** - Input validation, rate limiting, CORS, security headers
+- 🚀 **High Performance** - Optimized HTTP client with connection pooling and retry logic
+- 📊 **Comprehensive Monitoring** - Structured logging, health checks, metrics
+- 🧪 **Full Test Coverage** - Unit, integration, and E2E tests with performance testing
+- 🐳 **Production Docker** - Multi-stage builds with security scanning
+- ⚡ **CI/CD Pipeline** - Automated testing, security scanning, and deployment
 
 ## ⚡ Quick Start (5 minutes)
 

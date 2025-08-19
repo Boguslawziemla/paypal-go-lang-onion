@@ -12,26 +12,26 @@ import (
 // WebhookUseCase handles webhook processing use case
 type WebhookUseCase struct {
 	wooCommerceRepo interfaces.WooCommerceRepository
-	paymentRepo     interfaces.PaymentRepository
 	paymentService  *services.PaymentDomainService
 	orderService    *services.OrderDomainService
 	logger          interfaces.Logger
+	config          interfaces.ConfigService
 }
 
 // NewWebhookUseCase creates a new webhook use case
 func NewWebhookUseCase(
 	wooCommerceRepo interfaces.WooCommerceRepository,
-	paymentRepo interfaces.PaymentRepository,
 	paymentService *services.PaymentDomainService,
 	orderService *services.OrderDomainService,
 	logger interfaces.Logger,
+	config interfaces.ConfigService,
 ) *WebhookUseCase {
 	return &WebhookUseCase{
 		wooCommerceRepo: wooCommerceRepo,
-		paymentRepo:     paymentRepo,
 		paymentService:  paymentService,
 		orderService:    orderService,
 		logger:          logger,
+		config:          config,
 	}
 }
 
@@ -110,14 +110,15 @@ func (uc *WebhookUseCase) handlePaymentCaptureCompleted(ctx context.Context, req
 		entities.PaymentStatusCompleted,
 	)
 
-	// Store payment record
-	if err := uc.paymentRepo.Create(ctx, payment); err != nil {
-		uc.logger.Error("Failed to store webhook payment record", err, map[string]interface{}{
-			"payment_id": payment.ID,
-			"order_id":   orderID,
-		})
-		// Continue even if storage fails
-	}
+	// Store payment record (commented out as we don't have a payment repository yet)
+	// TODO: Implement payment repository for storing payment records
+	// if err := uc.paymentRepo.Create(ctx, payment); err != nil {
+	//     uc.logger.Error("Failed to store webhook payment record", err, map[string]interface{}{
+	//         "payment_id": payment.ID,
+	//         "order_id":   orderID,
+	//     })
+	//     // Continue even if storage fails
+	// }
 
 	// Update original order status to completed
 	if err := uc.wooCommerceRepo.UpdateMagicOrderPayment(ctx, orderID, payment); err != nil {

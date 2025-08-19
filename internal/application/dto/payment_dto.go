@@ -78,11 +78,12 @@ type OrderStatusResponse struct {
 	TransactionID string    `json:"transaction_id,omitempty"`
 }
 
-// ErrorResponse represents an error response
+// ErrorResponse represents an error response with enhanced security
 type ErrorResponse struct {
-	Error   string `json:"error"`
-	Message string `json:"message"`
-	Code    int    `json:"code"`
+	Error     string `json:"error"`
+	Message   string `json:"message"`
+	Code      int    `json:"code"`
+	Timestamp int64  `json:"timestamp"`
 }
 
 // HealthResponse represents a health check response

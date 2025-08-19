@@ -12,7 +12,6 @@ import (
 // PaymentRedirectUseCase handles the payment redirect use case
 type PaymentRedirectUseCase struct {
 	wooCommerceRepo interfaces.WooCommerceRepository
-	paymentGateway  interfaces.PaymentGateway
 	urlBuilder      interfaces.URLBuilder
 	orderService    *services.OrderDomainService
 	paymentService  *services.PaymentDomainService
@@ -23,7 +22,6 @@ type PaymentRedirectUseCase struct {
 // NewPaymentRedirectUseCase creates a new payment redirect use case
 func NewPaymentRedirectUseCase(
 	wooCommerceRepo interfaces.WooCommerceRepository,
-	paymentGateway interfaces.PaymentGateway,
 	urlBuilder interfaces.URLBuilder,
 	orderService *services.OrderDomainService,
 	paymentService *services.PaymentDomainService,
@@ -32,7 +30,6 @@ func NewPaymentRedirectUseCase(
 ) *PaymentRedirectUseCase {
 	return &PaymentRedirectUseCase{
 		wooCommerceRepo: wooCommerceRepo,
-		paymentGateway:  paymentGateway,
 		urlBuilder:      urlBuilder,
 		orderService:    orderService,
 		paymentService:  paymentService,

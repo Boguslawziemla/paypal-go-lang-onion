@@ -12,8 +12,6 @@ import (
 // PaymentReturnUseCase handles the payment return use case
 type PaymentReturnUseCase struct {
 	wooCommerceRepo interfaces.WooCommerceRepository
-	paymentRepo     interfaces.PaymentRepository
-	paymentGateway  interfaces.PaymentGateway
 	paymentService  *services.PaymentDomainService
 	orderService    *services.OrderDomainService
 	logger          interfaces.Logger
@@ -23,8 +21,6 @@ type PaymentReturnUseCase struct {
 // NewPaymentReturnUseCase creates a new payment return use case
 func NewPaymentReturnUseCase(
 	wooCommerceRepo interfaces.WooCommerceRepository,
-	paymentRepo interfaces.PaymentRepository,
-	paymentGateway interfaces.PaymentGateway,
 	paymentService *services.PaymentDomainService,
 	orderService *services.OrderDomainService,
 	logger interfaces.Logger,
@@ -32,8 +28,6 @@ func NewPaymentReturnUseCase(
 ) *PaymentReturnUseCase {
 	return &PaymentReturnUseCase{
 		wooCommerceRepo: wooCommerceRepo,
-		paymentRepo:     paymentRepo,
-		paymentGateway:  paymentGateway,
 		paymentService:  paymentService,
 		orderService:    orderService,
 		logger:          logger,

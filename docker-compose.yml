@@ -1,49 +1,195 @@
 version: '3.8'
 
 services:
-  paypal-proxy:
-    build: .
-    container_name: paypal-proxy-go
-    restart: unless-stopped
+  # Main PayPal Proxy application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+      args:
+        VERSION: ${VERSION:-dev}
+        COMMIT: ${COMMIT:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+    container_name: paypal-proxy
     ports:
       - "8080:8080"
     environment:
+      # Server Configuration
+      - PORT=8080
       - ENVIRONMENT=production
       - LOG_LEVEL=info
-      # Add your actual environment variables here
+      - BASE_URL=http://localhost:8080
+
+      # MagicSpore Configuration
+      - MAGIC_SITE_URL=${MAGIC_SITE_URL}
       - MAGIC_CONSUMER_KEY=${MAGIC_CONSUMER_KEY}
       - MAGIC_CONSUMER_SECRET=${MAGIC_CONSUMER_SECRET}
+
+      # OITAM Configuration  
+      - OITAM_SITE_URL=${OITAM_SITE_URL}
       - OITAM_CONSUMER_KEY=${OITAM_CONSUMER_KEY}
       - OITAM_CONSUMER_SECRET=${OITAM_CONSUMER_SECRET}
-    env_file:
-      - .env
+
+      # PayPal Configuration
+      - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
+      - PAYPAL_CLIENT_SECRET=${PAYPAL_CLIENT_SECRET}
+      - PAYPAL_ENVIRONMENT=${PAYPAL_ENVIRONMENT:-sandbox}
+
+      # Security Configuration
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET:-default-webhook-secret}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-default-encryption-key-change-me}
+      - CSRF_SECRET_KEY=${CSRF_SECRET_KEY}
+
+      # CORS Configuration
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-*}
+      - CORS_ALLOWED_METHODS=${CORS_ALLOWED_METHODS:-GET,POST,PUT,DELETE,OPTIONS}
+
+      # Return URLs
+      - SUCCESS_RETURN_URL=${SUCCESS_RETURN_URL:-https://magicspore.com/dziekujemy}
+      - CANCEL_RETURN_URL=${CANCEL_RETURN_URL:-https://magicspore.com/koszyk}
+      - ERROR_RETURN_URL=${ERROR_RETURN_URL:-https://magicspore.com/blad-platnosci}
+
+      # Cache Configuration
+      - REDIS_URL=redis://redis:6379
+      - CACHE_ENABLED=true
+      - CACHE_DEFAULT_TTL=15m
+
+      # Database Configuration
+      - DATABASE_URL=postgres://paypal:password@postgres:5432/paypal_proxy?sslmode=disable
+      - DATABASE_ENABLED=false
+      - DB_MAX_CONNECTIONS=10
+
     volumes:
-      - ./logs:/var/log/paypal-proxy:rw
+      - ./logs:/app/logs:rw
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    networks:
+      - paypal-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "/app/paypal-proxy", "--health-check"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    networks:
-      - paypal-proxy-network
 
-  # Optional: Nginx reverse proxy
-  nginx:
-    image: nginx:alpine
-    container_name: paypal-proxy-nginx
+  # Redis for caching
+  redis:
+    image: redis:7.2-alpine
+    container_name: paypal-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis-data:/data
+    networks:
+      - paypal-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for data persistence (optional)
+  postgres:
+    image: postgres:15-alpine
+    container_name: paypal-postgres
+    environment:
+      - POSTGRES_DB=paypal_proxy
+      - POSTGRES_USER=paypal
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - paypal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paypal -d paypal_proxy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nginx reverse proxy for production
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: paypal-nginx
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./configs/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./configs/ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx:rw
     depends_on:
-      - paypal-proxy
+      - app
     networks:
-      - paypal-proxy-network
+      - paypal-network
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: paypal-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - paypal-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: paypal-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./configs/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./configs/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - paypal-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+volumes:
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
 
 networks:
-  paypal-proxy-network:
+  paypal-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

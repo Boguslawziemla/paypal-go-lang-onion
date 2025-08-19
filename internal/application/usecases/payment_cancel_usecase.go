@@ -12,7 +12,6 @@ import (
 // PaymentCancelUseCase handles the payment cancel use case
 type PaymentCancelUseCase struct {
 	wooCommerceRepo interfaces.WooCommerceRepository
-	paymentRepo     interfaces.PaymentRepository
 	paymentService  *services.PaymentDomainService
 	orderService    *services.OrderDomainService
 	logger          interfaces.Logger
@@ -22,7 +21,6 @@ type PaymentCancelUseCase struct {
 // NewPaymentCancelUseCase creates a new payment cancel use case
 func NewPaymentCancelUseCase(
 	wooCommerceRepo interfaces.WooCommerceRepository,
-	paymentRepo interfaces.PaymentRepository,
 	paymentService *services.PaymentDomainService,
 	orderService *services.OrderDomainService,
 	logger interfaces.Logger,
@@ -30,7 +28,6 @@ func NewPaymentCancelUseCase(
 ) *PaymentCancelUseCase {
 	return &PaymentCancelUseCase{
 		wooCommerceRepo: wooCommerceRepo,
-		paymentRepo:     paymentRepo,
 		paymentService:  paymentService,
 		orderService:    orderService,
 		logger:          logger,
@@ -59,13 +56,14 @@ func (uc *PaymentCancelUseCase) Execute(ctx context.Context, request *dto.Paymen
 			entities.PaymentStatusCancelled,
 		)
 
-		// Store the cancelled payment record
-		if err := uc.paymentRepo.Create(ctx, cancelledPayment); err != nil {
-			uc.logger.Error("Failed to store cancelled payment record", err, map[string]interface{}{
-				"order_id": request.OrderID,
-			})
-			// Continue even if storage fails
-		}
+		// Store the cancelled payment record (commented out as we don't have a payment repository yet)
+		// TODO: Implement payment repository for storing payment records
+		// if err := uc.paymentRepo.Create(ctx, cancelledPayment); err != nil {
+		//     uc.logger.Error("Failed to store cancelled payment record", err, map[string]interface{}{
+		//         "order_id": request.OrderID,
+		//     })
+		//     // Continue even if storage fails
+		// }
 
 		// Update original order status to cancelled
 		err := uc.wooCommerceRepo.UpdateMagicOrderStatus(ctx, request.OrderID, entities.StatusCancelled)

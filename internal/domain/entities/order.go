@@ -42,11 +42,6 @@ const (
 	StatusFailed     OrderStatus = "failed"
 )
 
-// Money represents monetary value
-type Money struct {
-	Amount   float64
-	Currency string
-}
 
 // Address represents billing or shipping address
 type Address struct {

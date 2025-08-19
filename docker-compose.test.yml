@@ -1,0 +1,231 @@
+version: '3.8'
+
+services:
+  # Application for testing
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: testing
+    container_name: paypal-proxy-test
+    ports:
+      - "8080:8080"
+    environment:
+      # Test Configuration
+      - PORT=8080
+      - ENVIRONMENT=test
+      - LOG_LEVEL=debug
+      - BASE_URL=http://localhost:8080
+
+      # Test WooCommerce Configuration (use test sites)
+      - MAGIC_SITE_URL=https://test.magicspore.com
+      - MAGIC_CONSUMER_KEY=test_magic_key
+      - MAGIC_CONSUMER_SECRET=test_magic_secret
+
+      - OITAM_SITE_URL=https://test.oitam.com  
+      - OITAM_CONSUMER_KEY=test_oitam_key
+      - OITAM_CONSUMER_SECRET=test_oitam_secret
+
+      # Test PayPal Configuration
+      - PAYPAL_CLIENT_ID=test_paypal_client_id
+      - PAYPAL_CLIENT_SECRET=test_paypal_secret
+      - PAYPAL_ENVIRONMENT=sandbox
+
+      # Test Security Configuration
+      - WEBHOOK_SECRET=test-webhook-secret-for-testing
+      - ENCRYPTION_KEY=test-encryption-key-32-chars-long
+      - CSRF_SECRET_KEY=test-csrf-secret
+
+      # Test CORS Configuration
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+      - CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
+
+      # Test Return URLs
+      - SUCCESS_RETURN_URL=http://localhost:8080/test-success
+      - CANCEL_RETURN_URL=http://localhost:8080/test-cancel
+      - ERROR_RETURN_URL=http://localhost:8080/test-error
+
+      # Test Cache Configuration
+      - REDIS_URL=redis://redis:6379
+      - CACHE_ENABLED=true
+      - CACHE_DEFAULT_TTL=5m
+
+      # Test Database Configuration
+      - DATABASE_URL=postgres://test:test@postgres:5432/paypal_proxy_test?sslmode=disable
+      - DATABASE_ENABLED=false
+      - DB_MAX_CONNECTIONS=5
+
+      # Test Environment Variables
+      - TEST_ENVIRONMENT=e2e
+      - INTEGRATION_TESTS_ENABLED=true
+      - TEST_CONCURRENT_REQUESTS=true
+      - TEST_BASE_URL=http://localhost:8080
+
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    volumes:
+      - ./tests:/app/tests:ro
+      - ./logs:/app/logs:rw
+
+  # Redis for test caching
+  redis:
+    image: redis:7.2-alpine
+    container_name: paypal-redis-test
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # PostgreSQL for test data
+  postgres:
+    image: postgres:15-alpine
+    container_name: paypal-postgres-test
+    environment:
+      - POSTGRES_DB=paypal_proxy_test
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+    ports:
+      - "5433:5432"
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d paypal_proxy_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  # WireMock for mocking external services
+  wiremock:
+    image: wiremock/wiremock:3.0.1
+    container_name: paypal-wiremock-test
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./tests/wiremock/mappings:/home/wiremock/mappings:ro
+      - ./tests/wiremock/__files:/home/wiremock/__files:ro
+    command: --global-response-templating --verbose
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/__admin/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Mailhog for testing email functionality (if needed)
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: paypal-mailhog-test
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - test-network
+    profiles:
+      - mail-testing
+
+  # Load testing with k6
+  k6:
+    image: grafana/k6:0.46.0
+    container_name: paypal-k6-test
+    volumes:
+      - ./tests/performance:/scripts:ro
+      - ./tests/performance/results:/results:rw
+    environment:
+      - TEST_BASE_URL=http://app:8080
+    command: run --out json=/results/load-test-results.json /scripts/load-test.js
+    depends_on:
+      - app
+    networks:
+      - test-network
+    profiles:
+      - performance
+
+  # k6 for stress testing
+  k6-stress:
+    image: grafana/k6:0.46.0
+    container_name: paypal-k6-stress-test
+    volumes:
+      - ./tests/performance:/scripts:ro
+      - ./tests/performance/results:/results:rw
+    environment:
+      - TEST_BASE_URL=http://app:8080
+    command: run --out json=/results/stress-test-results.json /scripts/stress-test.js
+    depends_on:
+      - app
+    networks:
+      - test-network
+    profiles:
+      - stress
+
+  # Test runner for integration tests
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: testing
+    container_name: paypal-test-runner
+    working_dir: /app
+    environment:
+      - TEST_BASE_URL=http://app:8080
+      - TEST_ENVIRONMENT=integration
+      - INTEGRATION_TESTS_ENABLED=true
+      - REDIS_URL=redis://redis:6379
+    command: go test -v -tags=integration ./tests/integration/...
+    depends_on:
+      - app
+      - redis
+      - postgres
+    networks:
+      - test-network
+    volumes:
+      - ./tests:/app/tests:ro
+      - ./test-results:/app/test-results:rw
+    profiles:
+      - integration
+
+  # E2E test runner
+  e2e-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: testing
+    container_name: paypal-e2e-runner
+    working_dir: /app
+    environment:
+      - TEST_BASE_URL=http://app:8080
+      - TEST_ENVIRONMENT=e2e
+    command: go test -v -tags=e2e ./tests/e2e/...
+    depends_on:
+      - app
+    networks:
+      - test-network
+    volumes:
+      - ./tests:/app/tests:ro
+      - ./test-results:/app/test-results:rw
+    profiles:
+      - e2e
+
+networks:
+  test-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
